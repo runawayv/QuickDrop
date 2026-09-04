@@ -20,7 +20,7 @@
 
 ### 🚀 Next Milestones (High Priority)
 - [ ] **Wi-Fi Direct Integration** (True P2P connection between PC and Mobile without a router)
-- [ ] Clipboard synchronization (Seamless text and link sharing)
+- [x] Clipboard synchronization (Seamless text and link sharing)
 
 ### 🔒 Security & UX
 - [ ] End-to-End Encryption (TLS/SSL) for secure local data streaming
