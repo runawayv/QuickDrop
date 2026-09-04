@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QuickDrop</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <div id="pinOverlay" class="overlay hidden">
+        <div class="card pin-card">
+            <h1>QuickDrop</h1>
+            <p class="muted">Введите PIN-код доступа</p>
+            <input id="pinInput" type="number" inputmode="numeric" placeholder="PIN" autocomplete="off">
+            <button id="pinBtn" class="btn primary big">Войти</button>
+            <p id="pinError" class="error hidden">Неверный PIN</p>
+        </div>
+    </div>
+
+    <main class="wrap">
+        <header>
+            <h1>QuickDrop</h1>
+            <span id="statusDot" class="dot"></span>
+        </header>
+
+        <section class="card">
+            <h2>Отправить на ПК</h2>
+            <label class="btn primary big" for="fileInput">Выбрать файлы</label>
+            <input id="fileInput" type="file" multiple hidden>
+            <div id="uploadList"></div>
+        </section>
+
+        <section class="card">
+            <h2>Получить с ПК</h2>
+            <div id="fileList"><p class="muted">Загрузка…</p></div>
+        </section>
+
+        <section class="card">
+            <h2>Текст</h2>
+            <textarea id="textInput" rows="3" placeholder="Введите текст для отправки на ПК"></textarea>
+            <button id="textBtn" class="btn big">Отправить текст</button>
+        </section>
+
+        <section class="card">
+            <h2>Ссылка</h2>
+            <input id="linkInput" type="url" placeholder="https://example.com">
+            <button id="linkBtn" class="btn big">Отправить ссылку</button>
+        </section>
+
+        <p class="muted center">Локальная передача без интернета · QuickDrop</p>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="/app.js"></script>
+</body>
+</html>

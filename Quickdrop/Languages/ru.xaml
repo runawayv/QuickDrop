@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:String x:Key="L.WindowTitle">QuickDrop — передача файлов</sys:String>
+    <sys:String x:Key="L.CopyLink">Копировать ссылку</sys:String>
+    <sys:String x:Key="L.DropTitle">Перетащите файлы сюда</sys:String>
+    <sys:String x:Key="L.DropSubtitle">Они появятся на странице телефона</sys:String>
+    <sys:String x:Key="L.PickFiles">Выбрать файлы</sys:String>
+    <sys:String x:Key="L.PickFolder">Выбрать папку</sys:String>
+    <sys:String x:Key="L.History">История</sys:String>
+    <sys:String x:Key="L.Settings">Настройки</sys:String>
+    <sys:String x:Key="L.Transfers">Передачи</sys:String>
+    <sys:String x:Key="L.Clear">Очистить</sys:String>
+    <sys:String x:Key="L.EmptyTitle">Передач пока нет</sys:String>
+    <sys:String x:Key="L.EmptySubtitle">Добавьте файлы на ПК или отправьте их с телефона</sys:String>
+</ResourceDictionary>
