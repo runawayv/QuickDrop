@@ -10,6 +10,7 @@ public class AppSettings
 {
     public int Port { get; set; } = 8765;
     public string SelectedIp { get; set; } = "";
+    public string Language { get; set; } = "ru";
     public bool AutoStartServer { get; set; } = true;
     public string DownloadFolder { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

@@ -14,4 +14,10 @@
     <sys:String x:Key="L.Clear">Очистить</sys:String>
     <sys:String x:Key="L.EmptyTitle">Передач пока нет</sys:String>
     <sys:String x:Key="L.EmptySubtitle">Добавьте файлы на ПК или отправьте их с телефона</sys:String>
+    <sys:String x:Key="L.TrayOpen">Открыть QuickDrop</sys:String>
+    <sys:String x:Key="L.TrayStart">Запустить сервер</sys:String>
+    <sys:String x:Key="L.TrayStop">Остановить сервер</sys:String>
+    <sys:String x:Key="L.TrayExit">Выход</sys:String>
+    <sys:String x:Key="L.ClipboardText">Текст скопирован в буфер обмена</sys:String>
+    <sys:String x:Key="L.ClipboardLink">Ссылка скопирована в буфер обмена</sys:String>
 </ResourceDictionary>

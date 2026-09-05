@@ -6,8 +6,71 @@ let refreshing = false;
 
 const $ = (id) => document.getElementById(id);
 
+// ---------- i18n ----------
+const I18N = {
+    ru: {
+        pinPrompt: 'Введите PIN-код доступа', pinEnter: 'Войти', pinWrong: 'Неверный PIN',
+        sendToPc: 'Отправить на ПК', chooseFiles: 'Выбрать файлы',
+        getFromPc: 'Получить с ПК', loading: 'Загрузка…',
+        textTitle: 'Текст', textPh: 'Введите текст для отправки на ПК', sendText: 'Отправить текст',
+        linkTitle: 'Ссылка', sendLink: 'Отправить ссылку',
+        footer: 'Локальная передача без интернета · QuickDrop',
+        emptyFiles: 'Пока нет файлов с ПК. Добавьте их в окне QuickDrop.',
+        download: 'Скачать', done: 'Готово', needPin: 'Требуется PIN',
+        error: 'Ошибка', netError: 'Ошибка сети', sendError: 'Ошибка отправки',
+        textSent: 'Текст отправлен на ПК', linkSent: 'Ссылка отправлена на ПК',
+        perSec: '/с'
+    },
+    en: {
+        pinPrompt: 'Enter access PIN', pinEnter: 'Sign in', pinWrong: 'Wrong PIN',
+        sendToPc: 'Send to PC', chooseFiles: 'Choose files',
+        getFromPc: 'Get from PC', loading: 'Loading…',
+        textTitle: 'Text', textPh: 'Type text to send to the PC', sendText: 'Send text',
+        linkTitle: 'Link', sendLink: 'Send link',
+        footer: 'Local transfer, no internet · QuickDrop',
+        emptyFiles: 'No files from the PC yet. Add them in the QuickDrop window.',
+        download: 'Download', done: 'Done', needPin: 'PIN required',
+        error: 'Error', netError: 'Network error', sendError: 'Failed to send',
+        textSent: 'Text sent to PC', linkSent: 'Link sent to PC',
+        perSec: '/s'
+    }
+};
+
+const SIZE_UNITS = {
+    ru: ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'],
+    en: ['B', 'KB', 'MB', 'GB', 'TB']
+};
+
+let lang = localStorage.getItem('qd-lang') ||
+    ((navigator.language || 'en').indexOf('ru') === 0 ? 'ru' : 'en');
+
+function t(key) {
+    return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+}
+
+function applyI18n() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.placeholder = t(el.dataset.i18nPh);
+    });
+    const sw = $('langSwitch');
+    if (sw) sw.value = lang;
+}
+
+window.qdSetLang = function (l) {
+    if (!I18N[l]) l = 'en';
+    lang = l;
+    localStorage.setItem('qd-lang', l);
+    applyI18n();
+    loadFiles(); // перерисовать списки на выбранном языке
+};
+
+// ---------- утилиты ----------
 function fmtSize(bytes) {
-    const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
+    const units = SIZE_UNITS[lang] || SIZE_UNITS.en;
     let v = bytes;
     let i = 0;
     while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
@@ -15,11 +78,11 @@ function fmtSize(bytes) {
 }
 
 function toast(msg) {
-    const t = $('toast');
-    t.textContent = msg;
-    t.classList.remove('hidden');
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => t.classList.add('hidden'), 2200);
+    const t2 = $('toast');
+    t2.textContent = msg;
+    t2.classList.remove('hidden');
+    clearTimeout(t2._timer);
+    t2._timer = setTimeout(() => t2.classList.add('hidden'), 2200);
 }
 
 function headersWithToken(extra) {
@@ -36,6 +99,7 @@ function setStatus(ok) {
     $('statusDot').classList.toggle('off', !ok);
 }
 
+// ---------- списки ----------
 async function loadFiles() {
     refreshing = true;
     try {
@@ -59,7 +123,7 @@ function renderFiles(files) {
     if (!files.length) {
         const p = document.createElement('p');
         p.className = 'muted';
-        p.textContent = 'Пока нет файлов с ПК. Добавьте их в окне QuickDrop.';
+        p.textContent = t('emptyFiles');
         box.appendChild(p);
         return;
     }
@@ -71,14 +135,16 @@ function renderFiles(files) {
         item.innerHTML =
             '<div class="row">' +
             '  <span class="name"></span>' +
-            '  <a class="btn dl-btn" href="' + url + '" download>Скачать</a>' +
+            '  <a class="btn dl-btn" href="' + url + '" download></a>' +
             '</div>' +
             '<div class="small">' + fmtSize(f.size) + '</div>';
         item.querySelector('.name').textContent = f.name; // textContent — защита от XSS
+        item.querySelector('.dl-btn').textContent = t('download');
         box.appendChild(item);
     }
 }
 
+// ---------- загрузка файлов ----------
 function uploadOne(file) {
     return new Promise((resolve) => {
         const item = document.createElement('div');
@@ -124,29 +190,30 @@ function uploadOne(file) {
                 speed = speed ? speed * 0.6 + instant * 0.4 : instant;
                 lastLoaded = ev.loaded;
                 lastTime = now;
-                spd.textContent = fmtSize(speed) + '/с';
+                spd.textContent = fmtSize(speed) + t('perSec');
             }
         };
 
         xhr.onload = () => {
             if (xhr.status === 200) {
                 fill.style.width = '100%';
-                pct.textContent = 'Готово';
+                pct.textContent = t('done');
                 vol.textContent = fmtSize(file.size);
                 spd.textContent = '';
             } else if (xhr.status === 401) {
-                pct.textContent = 'Требуется PIN';
+                pct.textContent = t('needPin');
                 if (pinRequired) showPin(true);
             } else {
-                pct.textContent = 'Ошибка';
+                pct.textContent = t('error');
             }
             resolve();
         };
-        xhr.onerror = () => { pct.textContent = 'Ошибка сети'; resolve(); };
+        xhr.onerror = () => { pct.textContent = t('netError'); resolve(); };
         xhr.send(fd);
     });
 }
 
+// ---------- текст и ссылки ----------
 async function sendJson(url, payload, okMsg) {
     try {
         const r = await fetch(url, {
@@ -158,13 +225,15 @@ async function sendJson(url, payload, okMsg) {
             if (pinRequired) showPin(true);
             return;
         }
-        toast(r.ok ? okMsg : 'Ошибка отправки');
+        toast(r.ok ? okMsg : t('sendError'));
     } catch (e) {
-        toast('Ошибка сети');
+        toast(t('netError'));
     }
 }
 
+// ---------- инициализация ----------
 async function init() {
+    applyI18n();
     try {
         const r = await fetch('/api/info');
         const j = await r.json();
@@ -220,7 +289,7 @@ $('fileInput').addEventListener('change', async (e) => {
 $('textBtn').addEventListener('click', () => {
     const v = $('textInput').value.trim();
     if (!v) return;
-    sendJson('/api/text', { text: v }, 'Текст отправлен на ПК');
+    sendJson('/api/text', { text: v }, t('textSent'));
     $('textInput').value = '';
 });
 
@@ -228,8 +297,10 @@ $('linkBtn').addEventListener('click', () => {
     let v = $('linkInput').value.trim();
     if (!v) return;
     if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
-    sendJson('/api/link', { link: v }, 'Ссылка отправлена на ПК');
+    sendJson('/api/link', { link: v }, t('linkSent'));
     $('linkInput').value = '';
 });
+
+$('langSwitch').addEventListener('change', (e) => window.qdSetLang(e.target.value));
 
 init();

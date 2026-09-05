@@ -1,15 +1,12 @@
 ﻿using Microsoft.Win32;
-using QuickDrop;
 using QuickDrop.Models;
 using QuickDrop.Server;
 using QuickDrop.Services;
 using QuickDrop.Views;
-using System;
 using System.IO;
 using System.Windows;
 using SD = System.Drawing;
 using WF = System.Windows.Forms;
-using System.Linq;
 
 namespace QuickDrop;
 
@@ -25,8 +22,10 @@ public partial class App : Application
     public static event Action? SettingsApplied;
 
     private static WF.NotifyIcon? _tray;
+    private static WF.ToolStripMenuItem? _openItem;
     private static WF.ToolStripMenuItem? _startItem;
     private static WF.ToolStripMenuItem? _stopItem;
+    private static WF.ToolStripMenuItem? _exitItem;
     private static SD.Icon? _trayIcon;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -35,6 +34,8 @@ public partial class App : Application
 
         Settings = AppSettingsStore.Load();
         ApplyTheme(Settings.DarkTheme);
+        SetLanguage(string.IsNullOrEmpty(Settings.Language) ? "ru" : Settings.Language);
+
         try { Directory.CreateDirectory(Settings.DownloadFolder); } catch { }
 
         Transfers = new TransferService();
@@ -46,6 +47,7 @@ public partial class App : Application
         {
             try { Current?.Dispatcher.BeginInvoke(UpdateTrayMenu); } catch { }
         };
+        Server.TextReceived += OnTextReceived;
 
         var window = new MainWindow();
         MainWindow = window;
@@ -82,6 +84,7 @@ public partial class App : Application
         Settings = s;
         AppSettingsStore.Save(s);
         ApplyTheme(s.DarkTheme);
+        SetLanguage(string.IsNullOrEmpty(s.Language) ? "ru" : s.Language);
         ApplyAutoRun(s.StartWithWindows);
 
         if (wasRunning || s.AutoStartServer)
@@ -91,7 +94,41 @@ public partial class App : Application
         }
 
         SettingsApplied?.Invoke();
+        Current?.Dispatcher.BeginInvoke(UpdateTrayMenu);
     }
+
+    public static void SetLanguage(string code) // "ru" или "en"
+    {
+        var dicts = Current.Resources.MergedDictionaries;
+        var next = new ResourceDictionary
+        {
+            Source = new Uri($"pack://application:,,,/QuickDrop;component/Languages/{code}.xaml")
+        };
+        var old = dicts.FirstOrDefault(d => d.Source?.OriginalString.Contains("/Languages/") == true);
+        dicts.Add(next);
+        if (old != null) dicts.Remove(old);
+    }
+
+    // текст/ссылка с телефона -> буфер обмена
+    private static void OnTextReceived(string value, bool isText)
+    {
+        try
+        {
+            Current?.Dispatcher.Invoke(() =>
+            {
+                try { Clipboard.SetText(value); } catch { }
+                _tray?.ShowBalloonTip(2000, "QuickDrop",
+                    isText ? Tr("L.ClipboardText", "Текст скопирован в буфер обмена")
+                           : Tr("L.ClipboardLink", "Ссылка скопирована в буфер обмена"),
+                    WF.ToolTipIcon.Info);
+            });
+        }
+        catch { }
+    }
+
+    // ресурс с фолбэком: если ключа нет в словаре — вернёт дефолт
+    private static string Tr(string key, string fallback)
+        => Current?.TryFindResource(key) as string ?? fallback;
 
     public static void ApplyTheme(bool dark)
     {
@@ -128,18 +165,6 @@ public partial class App : Application
             Set(res, "SuccessColor", "#2FA45C");
             Set(res, "DangerColor", "#D8433B");
         }
-    }
-
-    public static void SetLanguage(string code)
-    {
-        var dicts = Application.Current.Resources.MergedDictionaries;
-        var next = new ResourceDictionary
-        {
-            Source = new Uri($"pack://application:,,,/QuickDrop;component/Languages/{code}.xaml")
-        };
-        var old = dicts.FirstOrDefault(d => d.Source?.OriginalString.Contains("/Languages/") == true);
-        dicts.Add(next);
-        if (old != null) dicts.Remove(old);
     }
 
     private static void Set(System.Windows.ResourceDictionary res, string key, string hex)
@@ -200,17 +225,21 @@ public partial class App : Application
         _trayIcon = CreateTrayIcon();
 
         var menu = new WF.ContextMenuStrip();
-        menu.Items.Add("Открыть QuickDrop", null, (s, e) => ShowMainWindow());
+        _openItem = new WF.ToolStripMenuItem(Tr("L.TrayOpen", "Открыть QuickDrop"));
+        _openItem.Click += (s, e) => ShowMainWindow();
+        menu.Items.Add(_openItem);
 
-        _startItem = new WF.ToolStripMenuItem("Запустить сервер");
+        _startItem = new WF.ToolStripMenuItem(Tr("L.TrayStart", "Запустить сервер"));
         _startItem.Click += (s, e) => StartServer();
-        _stopItem = new WF.ToolStripMenuItem("Остановить сервер");
+        _stopItem = new WF.ToolStripMenuItem(Tr("L.TrayStop", "Остановить сервер"));
         _stopItem.Click += (s, e) => StopServer();
         menu.Items.Add(_startItem);
         menu.Items.Add(_stopItem);
 
         menu.Items.Add(new WF.ToolStripSeparator());
-        menu.Items.Add("Выход", null, (s, e) => ExitApp());
+        _exitItem = new WF.ToolStripMenuItem(Tr("L.TrayExit", "Выход"));
+        _exitItem.Click += (s, e) => ExitApp();
+        menu.Items.Add(_exitItem);
 
         _tray = new WF.NotifyIcon
         {
@@ -229,15 +258,30 @@ public partial class App : Application
         if (_startItem == null || _stopItem == null) return;
         _startItem.Enabled = !Server.IsRunning;
         _stopItem.Enabled = Server.IsRunning;
+        if (_openItem != null) _openItem.Text = Tr("L.TrayOpen", "Открыть QuickDrop");
+        _startItem.Text = Tr("L.TrayStart", "Запустить сервер");
+        _stopItem.Text = Tr("L.TrayStop", "Остановить сервер");
+        if (_exitItem != null) _exitItem.Text = Tr("L.TrayExit", "Выход");
     }
 
     private static SD.Icon CreateTrayIcon()
     {
+        // если у приложения есть своя иконка — берём её
+        try
+        {
+            if (!string.IsNullOrEmpty(Environment.ProcessPath))
+            {
+                var extracted = SD.Icon.ExtractAssociatedIcon(Environment.ProcessPath);
+                if (extracted != null) return extracted;
+            }
+        }
+        catch { }
+
         using var bmp = new SD.Bitmap(32, 32);
         using (var g = SD.Graphics.FromImage(bmp))
         {
             g.SmoothingMode = SD.Drawing2D.SmoothingMode.AntiAlias;
-            using (var bg = new SD.SolidBrush(SD.Color.FromArgb(79, 140, 255)))
+            using (var bg = new SD.SolidBrush(SD.Color.FromArgb(0, 122, 204)))
                 g.FillEllipse(bg, 1, 1, 30, 30);
             using (var white = new SD.SolidBrush(SD.Color.White))
             {

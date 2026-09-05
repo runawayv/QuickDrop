@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1E1E1E">
     <title>QuickDrop</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/style.css">
@@ -12,10 +13,10 @@
     <div id="pinOverlay" class="overlay hidden">
         <div class="card pin-card">
             <h1>QuickDrop</h1>
-            <p class="muted">Введите PIN-код доступа</p>
+            <p class="muted" data-i18n="pinPrompt">Введите PIN-код доступа</p>
             <input id="pinInput" type="number" inputmode="numeric" placeholder="PIN" autocomplete="off">
-            <button id="pinBtn" class="btn primary big">Войти</button>
-            <p id="pinError" class="error hidden">Неверный PIN</p>
+            <button id="pinBtn" class="btn primary big" data-i18n="pinEnter">Войти</button>
+            <p id="pinError" class="error hidden" data-i18n="pinWrong">Неверный PIN</p>
         </div>
     </div>
 
@@ -23,33 +24,38 @@
         <header>
             <h1>QuickDrop</h1>
             <span id="statusDot" class="dot"></span>
+            <select id="langSwitch" style="margin-left:auto; font-size:13px;">
+                <option value="ru">RU</option>
+                <option value="en">EN</option>
+            </select>
         </header>
 
         <section class="card">
-            <h2>Отправить на ПК</h2>
-            <label class="btn primary big" for="fileInput">Выбрать файлы</label>
+            <h2 data-i18n="sendToPc">Отправить на ПК</h2>
+            <label class="btn primary big" for="fileInput" data-i18n="chooseFiles">Выбрать файлы</label>
             <input id="fileInput" type="file" multiple hidden>
             <div id="uploadList"></div>
         </section>
 
         <section class="card">
-            <h2>Получить с ПК</h2>
-            <div id="fileList"><p class="muted">Загрузка…</p></div>
+            <h2 data-i18n="getFromPc">Получить с ПК</h2>
+            <div id="fileList"><p class="muted" data-i18n="loading">Загрузка…</p></div>
         </section>
 
         <section class="card">
-            <h2>Текст</h2>
-            <textarea id="textInput" rows="3" placeholder="Введите текст для отправки на ПК"></textarea>
-            <button id="textBtn" class="btn big">Отправить текст</button>
+            <h2 data-i18n="textTitle">Текст</h2>
+            <textarea id="textInput" rows="3" data-i18n-ph="textPh"
+                      placeholder="Введите текст для отправки на ПК"></textarea>
+            <button id="textBtn" class="btn big" data-i18n="sendText">Отправить текст</button>
         </section>
 
         <section class="card">
-            <h2>Ссылка</h2>
+            <h2 data-i18n="linkTitle">Ссылка</h2>
             <input id="linkInput" type="url" placeholder="https://example.com">
-            <button id="linkBtn" class="btn big">Отправить ссылку</button>
+            <button id="linkBtn" class="btn big" data-i18n="sendLink">Отправить ссылку</button>
         </section>
 
-        <p class="muted center">Локальная передача без интернета · QuickDrop</p>
+        <p class="muted center" data-i18n="footer">Локальная передача без интернета · QuickDrop</p>
     </main>
 
     <div id="toast" class="toast hidden"></div>

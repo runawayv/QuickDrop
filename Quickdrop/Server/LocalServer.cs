@@ -27,6 +27,8 @@ public class LocalServer
 
     public event Action? StateChanged;
 
+    public event Action<string, bool>? TextReceived;
+
     public LocalServer(AppSettings settings, TransferService transfers, HistoryService history)
     {
         _settings = settings;
@@ -314,16 +316,14 @@ public class LocalServer
             await conn.SendJsonAsync(400, "Bad Request", "{\"ok\":false}", ct);
             return;
         }
+        TextReceived?.Invoke(value, isText);
+        string preview = value.Replace("\r", " ").Replace("\n", " ");
+        if (preview.Length > 40) preview = preview[..40] + "…";
+        string name = (isText ? "Текст: " : "Ссылка: ") + preview;
 
-        string stamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string fileName = (isText ? "text_" : "link_") + stamp + ".txt";
-        Directory.CreateDirectory(_settings.DownloadFolder);
-        string path = UniquePath(Path.Combine(_settings.DownloadFolder, fileName));
-        await File.WriteAllTextAsync(path, value + Environment.NewLine, Encoding.UTF8, ct);
-
-        var item = _transfers.CreateItem(fileName, TransferDirection.PhoneToPc, value.Length, path);
-        item.Complete(isText ? "Текст получен" : "Ссылка получена");
-        _history.Add(fileName, value.Length, TransferDirection.PhoneToPc, isText ? "Текст" : "Ссылка");
+        var item = _transfers.CreateItem(name, TransferDirection.PhoneToPc, value.Length, "");
+        item.Complete("В буфер обмена");
+        _history.Add(name, value.Length, TransferDirection.PhoneToPc, isText ? "Текст" : "Ссылка");
 
         await conn.SendJsonAsync(200, "OK", "{\"ok\":true}", ct);
     }

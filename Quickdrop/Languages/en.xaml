@@ -13,5 +13,11 @@
 	<sys:String x:Key="L.Transfers">Transfers</sys:String>
 	<sys:String x:Key="L.Clear">Clear</sys:String>
 	<sys:String x:Key="L.EmptyTitle">No transfers yet</sys:String>
-	<sys:String x:Key="L.EmptySubtitle">Add files from the PC or send them from your phone</sys:String>
+    <sys:String x:Key="L.EmptySubtitle">Add files from the PC or send them from your phone</sys:String>
+    <sys:String x:Key="L.TrayOpen">Open QuickDrop</sys:String>
+    <sys:String x:Key="L.TrayStart">Start server</sys:String>
+    <sys:String x:Key="L.TrayStop">Stop server</sys:String>
+    <sys:String x:Key="L.TrayExit">Exit</sys:String>
+    <sys:String x:Key="L.ClipboardText">Text copied to clipboard</sys:String>
+    <sys:String x:Key="L.ClipboardLink">Link copied to clipboard</sys:String>
 </ResourceDictionary>

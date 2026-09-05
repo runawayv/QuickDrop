@@ -101,8 +101,6 @@ Download the latest version from **Releases**:
 
 [QuickDrop Releases](https://github.com/runawayv/QuickDrop/releases?utm_source=chatgpt.com)
 
-Extract the archive anywhere on your PC.
-
 ### 3. Launch
 
 Run:
