@@ -24,7 +24,7 @@
 
 ### 🔒 Security & UX
 - [ ] End-to-End Encryption (TLS/SSL) for secure local data streaming
-- [ ] System tray integration and background operation mode
+- [x] System tray integration and background operation mode
 
 ### 📱 Ecosystem Expansion
 - [ ] Native Android client application
